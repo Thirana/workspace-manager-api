@@ -4,10 +4,10 @@ import jwt from 'jsonwebtoken';
 
 import { env } from '../config/env.js';
 
-export type UserRole = 'user' | 'admin';
+export type SystemRole = 'system_admin' | 'user';
 
-/** Access token payload (sub = user id, role = RBAC role, typ = access). */
-type AccessPayload = { sub: string; role: UserRole; typ: 'access' };
+/** Access token payload (sub = user id, systemRole = global role, typ = access). */
+type AccessPayload = { sub: string; systemRole: SystemRole; typ: 'access' };
 
 /** Refresh token payload (sub = user id, jti = token id, typ = refresh). */
 type RefreshPayload = { sub: string; jti: string; typ: 'refresh' };
@@ -25,10 +25,10 @@ export function hashToken(token: string): string {
 
 /**
  * Create an access token for a user.
- * Includes `role` so RBAC checks don't require a DB hit per request.
+ * Includes `systemRole` so global auth checks don't require a DB hit per request.
  */
-export function signAccessToken(userId: string, role: UserRole): string {
-    const payload: AccessPayload = { sub: userId, role, typ: 'access' };
+export function signAccessToken(userId: string, systemRole: SystemRole): string {
+    const payload: AccessPayload = { sub: userId, systemRole, typ: 'access' };
 
     return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
         algorithm: JWT_ALG,
@@ -64,7 +64,7 @@ export function verifyAccessToken(token: string): AccessPayload {
         audience: env.JWT_AUDIENCE,
     }) as AccessPayload;
 
-    if (decoded.typ !== 'access' || !decoded.sub || !decoded.role) {
+    if (decoded.typ !== 'access' || !decoded.sub || !decoded.systemRole) {
         throw new Error('Invalid access token payload');
     }
 

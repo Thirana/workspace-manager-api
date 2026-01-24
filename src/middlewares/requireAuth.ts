@@ -14,8 +14,8 @@ export const requireAuth: RequestHandler = (req, _res, next) => {
     try {
         const payload = verifyAccessToken(token);
 
-        // payload now includes role
-        req.auth = { userId: payload.sub, role: payload.role };
+        // payload now includes systemRole
+        req.auth = { userId: payload.sub, systemRole: payload.systemRole };
 
         next();
     } catch {

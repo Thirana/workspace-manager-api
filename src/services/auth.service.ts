@@ -59,8 +59,9 @@ export class AuthService {
             userAgent: meta?.userAgent ?? null,
         });
 
-        // create access token WITH role
-        const accessToken = signAccessToken(user.id, user.role);
+        // create access token with current system role
+        const systemRole = user.systemRole ?? 'user';
+        const accessToken = signAccessToken(user.id, systemRole);
 
         // Return user WITHOUT password
         return { user: user.toJSON(), accessToken, refreshToken };
@@ -83,7 +84,7 @@ export class AuthService {
             throw new AppError('Unauthenticated', 401);
         }
 
-        // load user to get CURRENT role (RBAC correctness)
+        // load user to get CURRENT system role
         const user = await UserModel.findById(tokenDoc.user);
         if (!user) {
             // conservative: revoke this token and deny
@@ -110,8 +111,9 @@ export class AuthService {
             userAgent: meta?.userAgent ?? null,
         });
 
-        // create new access token WITH role
-        const newAccessToken = signAccessToken(user.id, user.role);
+        // create new access token with current system role
+        const systemRole = user.systemRole ?? 'user';
+        const newAccessToken = signAccessToken(user.id, systemRole);
 
         return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     }

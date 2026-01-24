@@ -25,12 +25,13 @@ const userSchema = new mongoose.Schema(
         firstName: { type: String, trim: true, default: null },
         lastName: { type: String, trim: true, default: null },
 
-        // We'll expand roles later (workspace-level RBAC etc.)
-        role: {
+        systemRole: {
             type: String,
-            enum: ['user', 'admin'],
+            enum: ['system_admin', 'user'],
             default: 'user',
         },
+
+        canCreateWorkspaces: { type: Boolean, default: false },
     },
     {
         timestamps: true, // <-- createdAt / updatedAt

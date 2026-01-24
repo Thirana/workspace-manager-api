@@ -3,7 +3,7 @@ declare global {
         interface Request {
             auth?: {
                 userId: string;
-                role: 'user' | 'admin';
+                systemRole: 'system_admin' | 'user';
             };
         }
     }
