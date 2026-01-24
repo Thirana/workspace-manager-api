@@ -5,6 +5,8 @@ import { AuthService } from '../services/auth.service.js';
 
 import { AppError } from '../utils/AppError.js';
 
+import { requireAuth } from '../middlewares/requireAuth.js';
+
 function refreshCookieOptions() {
     return {
         httpOnly: true,
@@ -44,4 +46,23 @@ export const refresh: RequestHandler = async (req, res) => {
 
     res.cookie('refreshToken', refreshToken, refreshCookieOptions());
     res.status(200).json({ message: 'Refreshed', accessToken });
+};
+
+export const logout: RequestHandler = async (req, res) => {
+    const token = req.cookies?.refreshToken as string | undefined;
+
+    if (token) {
+        await AuthService.logout(token);
+    }
+
+    res.clearCookie('refreshToken', refreshCookieOptions());
+    res.status(200).json({ message: 'Logged out' });
+};
+
+export const me: RequestHandler = async (req, res) => {
+    const userId = req.auth?.userId;
+    if (!userId) throw new AppError('Unauthenticated', 401);
+
+    const user = await AuthService.getMe(userId);
+    res.status(200).json({ user });
 };

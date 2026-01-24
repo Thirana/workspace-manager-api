@@ -3,24 +3,28 @@ import jwt from 'jsonwebtoken';
 
 import { env } from '../config/env.js';
 
-/** JWT payload for access tokens. */
+/** Access token payload (sub = user id, typ = access). */
 type AccessPayload = { sub: string; typ: 'access' };
-/** JWT payload for refresh tokens. */
+
+/** Refresh token payload (sub = user id, jti = token id, typ = refresh). */
 type RefreshPayload = { sub: string; jti: string; typ: 'refresh' };
 
+/** Access payload returned after verification. */
+type VerifiedAccessPayload = { sub: string; typ: 'access' };
+
 /**
- * Create a SHA-256 hash of a token for safe storage/comparison.
+ * Hash a token for storage (sha256).
  * @param token - Raw token string.
- * @returns Hex-encoded hash.
+ * @returns Hex hash.
  */
 export function hashToken(token: string): string {
     return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 /**
- * Sign a short-lived access token for a user.
- * @param userId - User id to embed as the subject.
- * @returns Signed JWT access token.
+ * Create an access token for a user.
+ * @param userId - User id for the sub claim.
+ * @returns Signed access token.
  */
 export function signAccessToken(userId: string): string {
     const payload: AccessPayload = { sub: userId, typ: 'access' };
@@ -30,10 +34,10 @@ export function signAccessToken(userId: string): string {
 }
 
 /**
- * Sign a refresh token linked to a stored token id.
- * @param userId - User id to embed as the subject.
- * @param tokenId - Refresh token id (jti) for revocation tracking.
- * @returns Signed JWT refresh token.
+ * Create a refresh token for a user.
+ * @param userId - User id for the sub claim.
+ * @param tokenId - Token id for the jti claim.
+ * @returns Signed refresh token.
  */
 export function signRefreshToken(userId: string, tokenId: string): string {
     const payload: RefreshPayload = { sub: userId, jti: tokenId, typ: 'refresh' };
@@ -43,15 +47,32 @@ export function signRefreshToken(userId: string, tokenId: string): string {
 }
 
 /**
- * Verify a refresh token and assert required claims.
- * @param token - Raw JWT refresh token.
- * @returns Decoded and validated refresh payload.
- * @throws Error when the token is invalid or has a bad payload.
+ * Verify a refresh token and return its payload.
+ * @param token - Raw refresh token.
+ * @returns Refresh payload when valid.
+ * @throws Error when invalid or missing claims.
  */
 export function verifyRefreshToken(token: string): RefreshPayload {
     const decoded = jwt.verify(token, env.JWT_REFRESH_SECRET) as RefreshPayload;
     if (decoded.typ !== 'refresh' || !decoded.sub || !decoded.jti) {
         throw new Error('Invalid refresh token payload');
     }
+    return decoded;
+}
+
+
+/**
+ * Verify an access token and return its payload.
+ * @param token - Raw access token.
+ * @returns Access payload when valid.
+ * @throws Error when invalid or missing claims.
+ */
+export function verifyAccessToken(token: string): VerifiedAccessPayload {
+    const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET) as VerifiedAccessPayload;
+
+    if (decoded.typ !== 'access' || !decoded.sub) {
+        throw new Error('Invalid access token payload');
+    }
+
     return decoded;
 }

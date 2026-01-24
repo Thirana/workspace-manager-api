@@ -8,6 +8,7 @@ import type { LoginInput } from '../schemas/auth.schema.js';
 
 import { hashToken, signAccessToken, signRefreshToken, verifyRefreshToken } from './token.service.js';
 
+type RequestMeta = { ip?: string | undefined; userAgent?: string | undefined };
 
 function isDuplicateKeyError(err: unknown): boolean {
     return typeof err === 'object' && err !== null && (err as any).code === 11000;
@@ -37,7 +38,7 @@ export class AuthService {
 
     static async login(
         input: LoginInput,
-        meta?: { ip?: string | undefined; userAgent?: string | undefined },
+        meta?: RequestMeta
     ) {
 
         //validate email
@@ -71,7 +72,7 @@ export class AuthService {
 
     static async refresh(
         refreshToken: string,
-        meta?: { ip?: string | undefined; userAgent?: string | undefined },
+        meta?: RequestMeta
     ) {
 
         //decode payload from refresh token
@@ -111,6 +112,26 @@ export class AuthService {
 
         return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     }
+
+    static async logout(refreshToken: string) {
+        const payload = verifyRefreshToken(refreshToken);
+
+        const tokenDoc = await RefreshTokenModel.findById(payload.jti);
+        if (!tokenDoc || tokenDoc.revokedAt) return; // idempotent logout
+
+        // Only revoke if it matches the stored hash (prevents weird tampering)
+        if (tokenDoc.tokenHash !== hashToken(refreshToken)) return;
+
+        tokenDoc.revokedAt = new Date();
+        await tokenDoc.save();
+    }
+
+    static async getMe(userId: string) {
+        const user = await UserModel.findById(userId);
+        if (!user) throw new AppError('Unauthenticated', 401);
+        return user;
+    }
+
 }
 
 
