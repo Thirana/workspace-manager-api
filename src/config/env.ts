@@ -21,6 +21,9 @@ const envSchema = z.object({
 
     COOKIE_SECURE: z.coerce.boolean().default(false),
     COOKIE_SAMESITE: z.enum(['lax', 'strict', 'none']).default('lax'),
+
+    JWT_ISSUER: z.string().min(1),
+    JWT_AUDIENCE: z.string().min(1),
 });
 
 const parsed = envSchema.safeParse(process.env);

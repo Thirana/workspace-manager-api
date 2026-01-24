@@ -1,12 +1,16 @@
 import mongoose from 'mongoose';
 
-import { AppError } from "../utils/AppError";
-import type { RegisterInput } from "../schemas/auth.schema";
-import { UserModel } from "../models/user.model";
 import { RefreshTokenModel } from '../models/refreshToken.model.js';
-import type { LoginInput } from '../schemas/auth.schema.js';
-
-import { hashToken, signAccessToken, signRefreshToken, verifyRefreshToken } from './token.service.js';
+import { UserModel } from '../models/user.model.js';
+import type { LoginInput, RegisterInput } from '../schemas/auth.schema.js';
+import { env } from '../config/env.js';
+import { AppError } from '../utils/AppError.js';
+import {
+    hashToken,
+    signAccessToken,
+    signRefreshToken,
+    verifyRefreshToken,
+} from './token.service.js';
 
 type RequestMeta = { ip?: string | undefined; userAgent?: string | undefined };
 
@@ -15,18 +19,16 @@ function isDuplicateKeyError(err: unknown): boolean {
 }
 
 export class AuthService {
-
     static async register(input: RegisterInput) {
         try {
-            const user = await UserModel.create(
-                {
-                    email: input.email,
-                    password: input.password,
-                    firstName: input.firstName ?? null,
-                    lastName: input.lastName ?? null
-                })
-            return user // safe because toJSON transform removes password
+            const user = await UserModel.create({
+                email: input.email,
+                password: input.password,
+                firstName: input.firstName ?? null,
+                lastName: input.lastName ?? null,
+            });
 
+            return user; // safe because toJSON transform removes password
         } catch (err) {
             if (isDuplicateKeyError(err)) {
                 throw new AppError('Email already registered', 409);
@@ -35,80 +37,81 @@ export class AuthService {
         }
     }
 
+    static async login(input: LoginInput, meta?: RequestMeta) {
+        // validate email
+        const user = await UserModel.findOne({ email: input.email }).select('+password');
+        if (!user) throw new AppError('Invalid email or password', 401);
 
-    static async login(
-        input: LoginInput,
-        meta?: RequestMeta
-    ) {
+        // validate password
+        const ok = await user.comparePassword(input.password);
+        if (!ok) throw new AppError('Invalid email or password', 401);
 
-        //validate email
-        const user = await UserModel.findOne({ email: input.email }).select("+password")
-        if (!user) throw new AppError("Invalid email or password", 401)
-
-        //validate password
-        const ok = await user.comparePassword(input.password)
-        if (!ok) throw new AppError("Invalid email or password", 401)
-
-        // creates and stores refresh token record
+        // create refresh token record (rotation-ready)
         const tokenId = new mongoose.Types.ObjectId();
-        const refreshToken = signRefreshToken(user.id, tokenId.toString())
+        const refreshToken = signRefreshToken(user.id, tokenId.toString());
 
         await RefreshTokenModel.create({
             _id: tokenId,
             user: user._id,
             tokenHash: hashToken(refreshToken),
-            expiresAt: new Date(Date.now() + parseTtlToMs(process.env.REFRESH_TOKEN_TTL || '30d')),
+            expiresAt: new Date(Date.now() + parseTtlToMs(env.REFRESH_TOKEN_TTL)),
             ip: meta?.ip ?? null,
             userAgent: meta?.userAgent ?? null,
         });
 
-        // creates access token
-        const accessToken = signAccessToken(user.id);
+        // create access token WITH role
+        const accessToken = signAccessToken(user.id, user.role);
 
-        // Return user WITHOUT password (select:false + toJSON transform)
+        // Return user WITHOUT password
         return { user: user.toJSON(), accessToken, refreshToken };
     }
 
+    static async refresh(refreshToken: string, meta?: RequestMeta) {
+        // decode payload from refresh token
+        const payload = verifyRefreshToken(refreshToken);
 
-    static async refresh(
-        refreshToken: string,
-        meta?: RequestMeta
-    ) {
+        // get refresh token doc
+        const tokenDoc = await RefreshTokenModel.findById(payload.jti);
+        if (!tokenDoc || tokenDoc.revokedAt) throw new AppError('Unauthenticated', 401);
 
-        //decode payload from refresh token
-        const payload = verifyRefreshToken(refreshToken)
-
-        //gets related refresh token document from DB
-        const tokenDoc = await RefreshTokenModel.findById(payload.jti)
-        if (!tokenDoc || tokenDoc.revokedAt) throw new AppError("Unauthenticated", 401)
-
-        // token theft/replay detection: hash must match the stored hash
+        // token theft/replay detection: hash must match stored hash
         if (tokenDoc.tokenHash !== hashToken(refreshToken)) {
-            // Conservative response: revoke all active tokens for this user
-            await RefreshTokenModel.updateMany({ user: tokenDoc.user, revokedAt: null }, { revokedAt: new Date() });
+            await RefreshTokenModel.updateMany(
+                { user: tokenDoc.user, revokedAt: null },
+                { revokedAt: new Date() },
+            );
             throw new AppError('Unauthenticated', 401);
         }
 
-        //Rotate: revoke old token
-        tokenDoc.revokedAt = new Date()
+        // load user to get CURRENT role (RBAC correctness)
+        const user = await UserModel.findById(tokenDoc.user);
+        if (!user) {
+            // conservative: revoke this token and deny
+            tokenDoc.revokedAt = new Date();
+            await tokenDoc.save();
+            throw new AppError('Unauthenticated', 401);
+        }
+
+        // rotate: revoke old token + create new one
+        tokenDoc.revokedAt = new Date();
 
         const newTokenId = new mongoose.Types.ObjectId();
-        tokenDoc.replacedByTokenId = newTokenId
-        await tokenDoc.save()
+        tokenDoc.replacedByTokenId = newTokenId;
+        await tokenDoc.save();
 
-        // creating and inserting new refresh token
-        const newRefreshToken = signRefreshToken(payload.sub, newTokenId.toString())
+        const newRefreshToken = signRefreshToken(user.id, newTokenId.toString());
+
         await RefreshTokenModel.create({
             _id: newTokenId,
             user: tokenDoc.user,
             tokenHash: hashToken(newRefreshToken),
-            expiresAt: new Date(Date.now() + parseTtlToMs(process.env.REFRESH_TOKEN_TTL || '30d')),
+            expiresAt: new Date(Date.now() + parseTtlToMs(env.REFRESH_TOKEN_TTL)),
             ip: meta?.ip ?? null,
             userAgent: meta?.userAgent ?? null,
-        })
+        });
 
-        // creates new access token
-        const newAccessToken = signAccessToken(payload.sub);
+        // create new access token WITH role
+        const newAccessToken = signAccessToken(user.id, user.role);
 
         return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     }
@@ -119,7 +122,7 @@ export class AuthService {
         const tokenDoc = await RefreshTokenModel.findById(payload.jti);
         if (!tokenDoc || tokenDoc.revokedAt) return; // idempotent logout
 
-        // Only revoke if it matches the stored hash (prevents weird tampering)
+        // Only revoke if it matches stored hash
         if (tokenDoc.tokenHash !== hashToken(refreshToken)) return;
 
         tokenDoc.revokedAt = new Date();
@@ -131,11 +134,7 @@ export class AuthService {
         if (!user) throw new AppError('Unauthenticated', 401);
         return user;
     }
-
 }
-
-
-
 
 function parseTtlToMs(ttl: string): number {
     // supports '15m', '30d' (simple parser)

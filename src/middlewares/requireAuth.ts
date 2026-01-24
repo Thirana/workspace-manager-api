@@ -1,24 +1,24 @@
-import type { RequestHandler } from "express";
+import type { RequestHandler } from 'express';
 
-import { AppError } from "../utils/AppError";
-import { verifyAccessToken } from "../services/token.service";
+import { verifyAccessToken } from '../services/token.service.js';
+import { AppError } from '../utils/AppError.js';
 
-export const requireAuth: RequestHandler = (req, _rest, next) => {
+export const requireAuth: RequestHandler = (req, _res, next) => {
+    // Get access token from request header
+    const header = req.get('authorization');
+    if (!header) throw new AppError('Unauthenticated', 401);
 
-    //get access token from request header
-    const header = req.get("authorization")
-    if (!header) throw new AppError("Unauthenticated", 401)
-
-    const [scheme, token] = header.split(" ")
+    const [scheme, token] = header.split(' ');
     if (scheme !== 'Bearer' || !token) throw new AppError('Unauthenticated', 401);
 
     try {
+        const payload = verifyAccessToken(token);
 
-        const payload = verifyAccessToken(token)
-        req.auth = { userId: payload.sub }
-        next()
+        // payload now includes role
+        req.auth = { userId: payload.sub, role: payload.role };
 
+        next();
     } catch {
         throw new AppError('Unauthenticated', 401);
     }
-}
+};
