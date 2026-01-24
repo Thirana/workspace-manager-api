@@ -1,5 +1,11 @@
 import 'dotenv/config';
+import type { StringValue } from 'ms';
 import { z } from 'zod';
+
+const durationSchema = z
+    .string()
+    .min(1)
+    .transform((value) => value as StringValue);
 
 const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -9,8 +15,8 @@ const envSchema = z.object({
 
     JWT_ACCESS_SECRET: z.string().min(20),
     JWT_REFRESH_SECRET: z.string().min(20),
-    ACCESS_TOKEN_TTL: z.string().min(1).default('15m'),
-    REFRESH_TOKEN_TTL: z.string().min(1).default('30d'),
+    ACCESS_TOKEN_TTL: durationSchema.default('15m'),
+    REFRESH_TOKEN_TTL: durationSchema.default('30d'),
     BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(15).default(12),
 
     COOKIE_SECURE: z.coerce.boolean().default(false),

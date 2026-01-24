@@ -1,10 +1,15 @@
 import { Router } from 'express';
 
-import { register } from '../../controllers/auth.controller.js';
+import { register, login, refresh } from '../../controllers/auth.controller.js';
+
 import { validateBody } from '../../middlewares/validate.js';
-import { registerSchema } from '../../schemas/auth.schema.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
+
+import { registerSchema } from '../../schemas/auth.schema.js';
+import { loginSchema } from '../../schemas/auth.schema.js';
 
 export const authRouter = Router();
 
 authRouter.post('/register', validateBody(registerSchema), asyncHandler(register));
+authRouter.post('/login', validateBody(loginSchema), asyncHandler(login));
+authRouter.post('/refresh', asyncHandler(refresh));

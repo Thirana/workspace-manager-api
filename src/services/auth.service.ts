@@ -1,6 +1,13 @@
+import mongoose from 'mongoose';
+
 import { AppError } from "../utils/AppError";
 import type { RegisterInput } from "../schemas/auth.schema";
 import { UserModel } from "../models/user.model";
+import { RefreshTokenModel } from '../models/refreshToken.model.js';
+import type { LoginInput } from '../schemas/auth.schema.js';
+
+import { hashToken, signAccessToken, signRefreshToken, verifyRefreshToken } from './token.service.js';
+
 
 function isDuplicateKeyError(err: unknown): boolean {
     return typeof err === 'object' && err !== null && (err as any).code === 11000;
@@ -26,4 +33,96 @@ export class AuthService {
             throw err;
         }
     }
+
+
+    static async login(
+        input: LoginInput,
+        meta?: { ip?: string | undefined; userAgent?: string | undefined },
+    ) {
+
+        //validate email
+        const user = await UserModel.findOne({ email: input.email }).select("+password")
+        if (!user) throw new AppError("Invalid email or password", 401)
+
+        //validate password
+        const ok = await user.comparePassword(input.password)
+        if (!ok) throw new AppError("Invalid email or password", 401)
+
+        // creates and stores refresh token record
+        const tokenId = new mongoose.Types.ObjectId();
+        const refreshToken = signRefreshToken(user.id, tokenId.toString())
+
+        await RefreshTokenModel.create({
+            _id: tokenId,
+            user: user._id,
+            tokenHash: hashToken(refreshToken),
+            expiresAt: new Date(Date.now() + parseTtlToMs(process.env.REFRESH_TOKEN_TTL || '30d')),
+            ip: meta?.ip ?? null,
+            userAgent: meta?.userAgent ?? null,
+        });
+
+        // creates access token
+        const accessToken = signAccessToken(user.id);
+
+        // Return user WITHOUT password (select:false + toJSON transform)
+        return { user: user.toJSON(), accessToken, refreshToken };
+    }
+
+
+    static async refresh(
+        refreshToken: string,
+        meta?: { ip?: string | undefined; userAgent?: string | undefined },
+    ) {
+
+        //decode payload from refresh token
+        const payload = verifyRefreshToken(refreshToken)
+
+        //gets related refresh token document from DB
+        const tokenDoc = await RefreshTokenModel.findById(payload.jti)
+        if (!tokenDoc || tokenDoc.revokedAt) throw new AppError("Unauthenticated", 401)
+
+        // token theft/replay detection: hash must match the stored hash
+        if (tokenDoc.tokenHash !== hashToken(refreshToken)) {
+            // Conservative response: revoke all active tokens for this user
+            await RefreshTokenModel.updateMany({ user: tokenDoc.user, revokedAt: null }, { revokedAt: new Date() });
+            throw new AppError('Unauthenticated', 401);
+        }
+
+        //Rotate: revoke old token
+        tokenDoc.revokedAt = new Date()
+
+        const newTokenId = new mongoose.Types.ObjectId();
+        tokenDoc.replacedByTokenId = newTokenId
+        await tokenDoc.save()
+
+        // creating and inserting new refresh token
+        const newRefreshToken = signRefreshToken(payload.sub, newTokenId.toString())
+        await RefreshTokenModel.create({
+            _id: newTokenId,
+            user: tokenDoc.user,
+            tokenHash: hashToken(newRefreshToken),
+            expiresAt: new Date(Date.now() + parseTtlToMs(process.env.REFRESH_TOKEN_TTL || '30d')),
+            ip: meta?.ip ?? null,
+            userAgent: meta?.userAgent ?? null,
+        })
+
+        // creates new access token
+        const newAccessToken = signAccessToken(payload.sub);
+
+        return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+    }
+}
+
+
+
+
+function parseTtlToMs(ttl: string): number {
+    // supports '15m', '30d' (simple parser)
+    const m = ttl.match(/^(\d+)([smhd])$/);
+    if (!m) return 30 * 24 * 60 * 60 * 1000;
+
+    const value = Number(m[1]);
+    const unit = m[2];
+    const mult = unit === 's' ? 1000 : unit === 'm' ? 60_000 : unit === 'h' ? 3_600_000 : 86_400_000;
+    return value * mult;
 }
