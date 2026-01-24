@@ -1,14 +1,15 @@
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
-
 import { AppError } from './utils/AppError.js';
 import { errorHandler } from './middlewares/errorHandler.js';
-
 import { debugRouter } from './routes/debug.routes.js';
+
+import { apiRouter } from './routes/index.js';
 
 
 export const app = express();
@@ -18,6 +19,8 @@ app.use(helmet());
 
 // Body parsing with size limit (basic hardening)
 app.use(express.json({ limit: '1mb' }));
+
+app.use(cookieParser());
 
 // CORS (explicit origin)
 app.use(
@@ -39,6 +42,8 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/debug', debugRouter);
+
+app.use('/api', apiRouter);
 
 // 404 handler (no route matched)
 app.use((_req, _res, next) => {

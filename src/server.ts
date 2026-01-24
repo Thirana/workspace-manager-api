@@ -9,6 +9,8 @@ async function start() {
         // Mongoose strict defaults (safe)
         mongoose.set('strictQuery', true);
 
+        mongoose.set('autoIndex', env.NODE_ENV !== 'production');
+
         await mongoose.connect(env.MONGODB_URI);
         logger.info('mongodb_connected');
 
