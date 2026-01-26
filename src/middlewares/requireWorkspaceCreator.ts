@@ -2,12 +2,10 @@ import type { RequestHandler } from 'express';
 
 import { UserModel } from '../models/user.model.js';
 import { AppError } from '../utils/AppError.js';
+import { getAuth } from '../utils/getAuth.js';
 
 export const requireWorkspaceCreator: RequestHandler = async (req, _res, next) => {
-    const userId = req.auth?.userId;
-    const systemRole = req.auth?.systemRole;
-
-    if (!userId || !systemRole) throw new AppError('Unauthenticated', 401);
+    const { userId, systemRole } = getAuth(req);
 
     // System admins can always create workspaces
     if (systemRole === 'system_admin') return next();

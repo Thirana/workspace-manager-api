@@ -1,11 +1,10 @@
 import type { RequestHandler } from 'express';
 
-import { AppError } from '../utils/AppError.js';
 import { WorkspaceService } from '../services/workspace.service.js';
+import { getAuth } from '../utils/getAuth.js';
 
 export const createWorkspace: RequestHandler = async (req, res) => {
-    const userId = req.auth?.userId;
-    if (!userId) throw new AppError('Unauthenticated', 401);
+    const { userId } = getAuth(req);
 
     const workspace = await WorkspaceService.createWorkspace(req.body, userId);
 
@@ -16,8 +15,7 @@ export const createWorkspace: RequestHandler = async (req, res) => {
 };
 
 export const listWorkspaces: RequestHandler = async (req, res) => {
-    const userId = req.auth?.userId;
-    if (!userId) throw new AppError('Unauthenticated', 401);
+    const { userId } = getAuth(req);
 
     const workspaces = await WorkspaceService.listMyWorkspaces(userId);
 

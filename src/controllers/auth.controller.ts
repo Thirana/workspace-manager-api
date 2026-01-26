@@ -5,7 +5,7 @@ import { AuthService } from '../services/auth.service.js';
 
 import { AppError } from '../utils/AppError.js';
 
-import { requireAuth } from '../middlewares/requireAuth.js';
+import { getAuth } from '../utils/getAuth.js';
 
 function refreshCookieOptions() {
     return {
@@ -60,8 +60,7 @@ export const logout: RequestHandler = async (req, res) => {
 };
 
 export const me: RequestHandler = async (req, res) => {
-    const userId = req.auth?.userId;
-    if (!userId) throw new AppError('Unauthenticated', 401);
+    const { userId } = getAuth(req);
 
     const user = await AuthService.getMe(userId);
     res.status(200).json({ user });
