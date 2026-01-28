@@ -1,7 +1,8 @@
 import { Router } from 'express';
 
-import { createWorkspace, listWorkspaces } from '../../controllers/workspace.controller.js';
+import { createWorkspace, listWorkspaces, getWorkspace } from '../../controllers/workspace.controller.js';
 import { requireAuth } from '../../middlewares/requireAuth.js';
+import { requireWorkspaceMember } from '../../middlewares/requireWorkspaceMember.js';
 import { requireWorkspaceCreator } from '../../middlewares/requireWorkspaceCreator.js';
 import { validateBody } from '../../middlewares/validate.js';
 import { createWorkspaceSchema } from '../../schemas/workspace.schema.js';
@@ -20,3 +21,10 @@ workspaceRouter.post(
 
 // List my workspaces (membership-driven)
 workspaceRouter.get('/', requireAuth, asyncHandler(listWorkspaces));
+
+workspaceRouter.get(
+    '/:workspaceId',
+    requireAuth,
+    requireWorkspaceMember('workspaceId'),
+    asyncHandler(getWorkspace),
+);

@@ -91,4 +91,15 @@ export class WorkspaceService {
             _id: -1,
         });
     }
+
+    static async getWorkspaceByID(workspaceId: string) {
+
+        const ws = WorkspaceModel.findOne({
+            _id: new mongoose.Types.ObjectId(workspaceId),
+            isDeleted: false,
+        })
+
+        if (!ws) throw new AppError("Workspace not found", 404)
+        return ws
+    }
 }
