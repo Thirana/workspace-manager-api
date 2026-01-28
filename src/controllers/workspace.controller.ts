@@ -35,3 +35,25 @@ export const getWorkspace: RequestHandler = async (req, res) => {
 
     res.status(200).json({ workspace: ws });
 };
+
+export const updateWorkspace: RequestHandler = async (req, res) => {
+    const workspaceId = req.workspaceAuth?.workspaceId;
+    if (!workspaceId) throw new AppError('Workspace not found', 404);
+
+    const updated = await WorkspaceService.updateWorkspace(workspaceId, req.body);
+
+    res.status(200).json({
+        message: 'Workspace updated',
+        workspace: updated,
+    });
+};
+
+export const deleteWorkspace: RequestHandler = async (req, res) => {
+    const workspaceId = req.workspaceAuth?.workspaceId;
+    if (!workspaceId) throw new AppError('Workspace not found', 404);
+
+    await WorkspaceService.softDeleteWorkspace(workspaceId);
+
+    // common REST practice: 204 No Content for successful delete
+    res.status(204).send();
+};

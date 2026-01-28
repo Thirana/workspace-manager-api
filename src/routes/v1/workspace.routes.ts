@@ -1,12 +1,13 @@
 import { Router } from 'express';
 
-import { createWorkspace, listWorkspaces, getWorkspace } from '../../controllers/workspace.controller.js';
+import { createWorkspace, listWorkspaces, getWorkspace, updateWorkspace, deleteWorkspace } from '../../controllers/workspace.controller.js';
 import { requireAuth } from '../../middlewares/requireAuth.js';
 import { requireWorkspaceMember } from '../../middlewares/requireWorkspaceMember.js';
 import { requireWorkspaceCreator } from '../../middlewares/requireWorkspaceCreator.js';
 import { validateBody } from '../../middlewares/validate.js';
-import { createWorkspaceSchema } from '../../schemas/workspace.schema.js';
+import { createWorkspaceSchema, updateWorkspaceSchema } from '../../schemas/workspace.schema.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
+import { requireWorkspaceRole } from '../../middlewares/requireWorkspaceRole.js';
 
 export const workspaceRouter = Router();
 
@@ -27,4 +28,23 @@ workspaceRouter.get(
     requireAuth,
     requireWorkspaceMember('workspaceId'),
     asyncHandler(getWorkspace),
+);
+
+// Owner/Admin update
+workspaceRouter.patch(
+    '/:workspaceId',
+    requireAuth,
+    requireWorkspaceMember('workspaceId'),
+    requireWorkspaceRole('owner', 'admin'),
+    validateBody(updateWorkspaceSchema),
+    asyncHandler(updateWorkspace),
+);
+
+// Owner-only delete (soft)
+workspaceRouter.delete(
+    '/:workspaceId',
+    requireAuth,
+    requireWorkspaceMember('workspaceId'),
+    requireWorkspaceRole('owner'),
+    asyncHandler(deleteWorkspace),
 );

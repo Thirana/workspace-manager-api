@@ -12,7 +12,17 @@ export const createWorkspaceSchema = z.object({
     name: z.string().trim().min(2).max(80),
 });
 
+export const updateWorkspaceSchema = z
+    .object({
+        name: z.string().trim().min(2).max(80).optional(),
+    })
+    .refine((obj) => Object.keys(obj).length > 0, {
+        message: 'At least one field must be provided',
+    });
+
 export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;
+
+export type UpdateWorkspaceInput = z.infer<typeof updateWorkspaceSchema>;
 
 export function makeWorkspaceSlug(name: string) {
     return slugify(name);

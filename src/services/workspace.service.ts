@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 
 import { WorkspaceModel } from '../models/workspace.model.js';
 import { WorkspaceMembershipModel } from '../models/workspaceMembership.model.js';
-import type { CreateWorkspaceInput } from '../schemas/workspace.schema.js';
+import type { CreateWorkspaceInput, UpdateWorkspaceInput } from '../schemas/workspace.schema.js';
 import { makeWorkspaceSlug } from '../schemas/workspace.schema.js';
 import { AppError } from '../utils/AppError.js';
 
@@ -101,5 +101,31 @@ export class WorkspaceService {
 
         if (!ws) throw new AppError("Workspace not found", 404)
         return ws
+    }
+
+    static async updateWorkspace(workspaceId: string, patch: UpdateWorkspaceInput) {
+        const update: Record<string, unknown> = {};
+
+        if (patch.name !== undefined) update.name = patch.name;
+
+        const ws = await WorkspaceModel.findOneAndUpdate(
+            { _id: new mongoose.Types.ObjectId(workspaceId), isDeleted: false },
+            { $set: update },
+            {
+                new: true,
+                runValidators: true, // important: update validators are OFF by default :contentReference[oaicite:3]{index=3}
+            },
+        );
+
+        if (!ws) throw new AppError('Workspace not found', 404);
+        return ws;
+    }
+
+    static async softDeleteWorkspace(workspaceId: string) {
+        // Idempotent: if already deleted, treat as success.
+        await WorkspaceModel.updateOne(
+            { _id: new mongoose.Types.ObjectId(workspaceId), isDeleted: false },
+            { $set: { isDeleted: true, deletedAt: new Date() } },
+        );
     }
 }
