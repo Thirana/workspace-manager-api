@@ -4,7 +4,7 @@ import { ZodError } from "zod";
 import { logger } from "../config/logger";
 import { AppError } from "../utils/AppError";
 
-export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
 
     // zod validation error
     if (err instanceof ZodError) {
@@ -28,7 +28,11 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     }
 
     // Unknown/unexpected errors
-    logger.error('unhandled_error', { message: err.message, stack: err.stack });
+    logger.error('unhandled_error', {
+        requestId: req.requestId,
+        message: err.message,
+        stack: err.stack,
+    });
 
     return res.status(500).json({
         error: {

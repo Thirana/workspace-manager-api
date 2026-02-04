@@ -7,6 +7,8 @@ import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { AppError } from './utils/AppError.js';
 import { errorHandler } from './middlewares/errorHandler.js';
+import { rateLimit } from './middlewares/rateLimit.js';
+import { requestId } from './middlewares/requestId.js';
 import { debugRouter } from './routes/debug.routes.js';
 
 import { apiRouter } from './routes/index.js';
@@ -22,6 +24,12 @@ app.use(express.json({ limit: '1mb' }));
 
 app.use(cookieParser());
 
+// Request ID (traceable logs + response header)
+app.use(requestId);
+
+// Basic rate limiting (in-memory)
+app.use(rateLimit());
+
 // CORS (explicit origin)
 app.use(
   cors({
@@ -32,7 +40,12 @@ app.use(
 
 // Minimal request logging (we’ll enhance later with correlation IDs)
 app.use((req, _res, next) => {
-  logger.info('request', { method: req.method, path: req.path });
+  logger.info('request', {
+    requestId: req.requestId,
+    method: req.method,
+    path: req.path,
+    ip: req.ip,
+  });
   next();
 });
 

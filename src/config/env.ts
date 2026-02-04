@@ -24,6 +24,9 @@ const envSchema = z.object({
 
     JWT_ISSUER: z.string().min(1),
     JWT_AUDIENCE: z.string().min(1),
+
+    RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(15 * 60 * 1000),
+    RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
 });
 
 const parsed = envSchema.safeParse(process.env);

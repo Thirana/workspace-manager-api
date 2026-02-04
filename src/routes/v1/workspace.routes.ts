@@ -4,8 +4,8 @@ import { createWorkspace, listWorkspaces, getWorkspace, updateWorkspace, deleteW
 import { requireAuth } from '../../middlewares/requireAuth.js';
 import { requireWorkspaceMember } from '../../middlewares/requireWorkspaceMember.js';
 import { requireWorkspaceCreator } from '../../middlewares/requireWorkspaceCreator.js';
-import { validateBody } from '../../middlewares/validate.js';
-import { createWorkspaceSchema, updateWorkspaceSchema } from '../../schemas/workspace.schema.js';
+import { validateBody, validateParams } from '../../middlewares/validate.js';
+import { createWorkspaceSchema, updateWorkspaceSchema, workspaceIdParamSchema } from '../../schemas/workspace.schema.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { requireWorkspaceRole } from '../../middlewares/requireWorkspaceRole.js';
 
@@ -26,6 +26,7 @@ workspaceRouter.get('/', requireAuth, asyncHandler(listWorkspaces));
 workspaceRouter.get(
     '/:workspaceId',
     requireAuth,
+    validateParams(workspaceIdParamSchema),
     requireWorkspaceMember('workspaceId'),
     asyncHandler(getWorkspace),
 );
@@ -34,6 +35,7 @@ workspaceRouter.get(
 workspaceRouter.patch(
     '/:workspaceId',
     requireAuth,
+    validateParams(workspaceIdParamSchema),
     requireWorkspaceMember('workspaceId'),
     requireWorkspaceRole('owner', 'admin'),
     validateBody(updateWorkspaceSchema),
@@ -44,6 +46,7 @@ workspaceRouter.patch(
 workspaceRouter.delete(
     '/:workspaceId',
     requireAuth,
+    validateParams(workspaceIdParamSchema),
     requireWorkspaceMember('workspaceId'),
     requireWorkspaceRole('owner'),
     asyncHandler(deleteWorkspace),

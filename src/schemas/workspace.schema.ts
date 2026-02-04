@@ -20,6 +20,10 @@ export const updateWorkspaceSchema = z
         message: 'At least one field must be provided',
     });
 
+export const workspaceIdParamSchema = z.object({
+    workspaceId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid workspace Id'),
+});
+
 export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;
 
 export type UpdateWorkspaceInput = z.infer<typeof updateWorkspaceSchema>;
