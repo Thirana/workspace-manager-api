@@ -7,6 +7,8 @@ What
 
 Why
 - Makes it easy to trace a single request through logs.
+- Lets support teams correlate client errors with server logs.
+- Improves debugging when multiple requests happen concurrently.
 
 Where
 - Middleware: `src/middlewares/requestId.ts`
@@ -19,6 +21,8 @@ What
 
 Why
 - Machine-readable logs simplify debugging and log aggregation.
+- Consistent structure enables filtering and alerting in log platforms.
+- Stack traces on errors improve root-cause analysis.
 
 Where
 - Logger: `src/config/logger.ts`
@@ -32,6 +36,8 @@ What
 
 Why
 - Prevents running the app with invalid or missing config.
+- Fails fast with clear errors instead of runtime surprises.
+- Keeps deployments consistent across environments.
 
 Where
 - Config: `src/config/env.ts`
@@ -43,6 +49,8 @@ What
 
 Why
 - Prevents abrupt termination and reduces risk of corrupted in-flight work.
+- Allows in-flight requests to complete safely.
+- Closes DB connections cleanly to avoid resource leaks.
 
 Where
 - Server bootstrap: `src/server.ts`

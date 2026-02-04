@@ -10,6 +10,8 @@ What
 Why
 
 - Keeps global permissions separate from workspace-level permissions.
+- Capability flags allow granular control without promoting a user to admin.
+- Makes the auth model easier to evolve as new features appear.
 
 Where
 
@@ -27,6 +29,8 @@ What
 Why
 
 - Prevents resource enumeration and keeps data access strict.
+- Avoids leaking whether a workspace exists to non-members.
+- Enforces a clear security boundary before any data access.
 
 Where
 
@@ -42,6 +46,8 @@ What
 Why
 
 - Allows fine-grained permissions inside a workspace.
+- Centralizes role checks to avoid missed authorization in handlers.
+- Makes permission changes explicit and auditable.
 
 Where
 
@@ -56,6 +62,8 @@ What
 Why
 
 - Ensures users only see their own workspaces.
+- Reduces the chance of accidental data leakage in list endpoints.
+- Aligns queries with the principle of least privilege.
 
 Where
 

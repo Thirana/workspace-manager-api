@@ -6,7 +6,9 @@ What
 - Helmet sets common security headers.
 
 Why
-- Reduces exposure to common web vulnerabilities.
+- Adds a baseline set of protections for common web vulnerabilities.
+- Reduces attack surface without custom code per route.
+- Keeps security defaults consistent across endpoints.
 
 Where
 - App setup: `src/app.ts`
@@ -18,6 +20,8 @@ What
 
 Why
 - Prevents unwanted cross-origin access while supporting cookie auth.
+- Ensures only the intended frontend origin can call the API.
+- Limits risk of browser-based data exfiltration.
 
 Where
 - App setup: `src/app.ts`
@@ -30,6 +34,8 @@ What
 
 Why
 - Protects against accidental or abusive request bursts.
+- Provides a simple, predictable throttle for noisy clients.
+- Adds backpressure before the database becomes overloaded.
 
 Where
 - Middleware: `src/middlewares/rateLimit.ts`
@@ -41,7 +47,9 @@ What
 - Refresh token cookie uses HttpOnly, `secure`, and `sameSite` options.
 
 Why
-- Reduces XSS/CSRF exposure.
+- HttpOnly reduces XSS impact by blocking JS access to the cookie.
+- `sameSite` reduces CSRF by limiting cross-site cookie sending.
+- `secure` ensures cookies are only sent over HTTPS in production.
 
 Where
 - Auth controller: `src/controllers/auth.controller.ts`
@@ -53,7 +61,9 @@ What
 - JWT verification enforces issuer, audience, algorithm, and token type.
 
 Why
-- Prevents token confusion and weak verification.
+- Prevents token confusion by requiring the right token type.
+- Enforces issuer/audience to avoid accepting tokens from other apps.
+- Restricts algorithms to reduce risk of downgrade attacks.
 
 Where
 - Token service: `src/services/token.service.ts`
@@ -65,6 +75,8 @@ What
 
 Why
 - Mitigates accidental large payloads and basic abuse.
+- Reduces memory pressure from oversized JSON bodies.
+- Provides an early guardrail for clients.
 
 Where
 - App setup: `src/app.ts`

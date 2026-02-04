@@ -9,7 +9,9 @@ What
 
 Why
 
-- Reduces JWT misuse and avoids DB lookups for global role checks.
+- Enforcing issuer, audience, algorithm, and typ reduces token confusion attacks.
+- Embedding `systemRole` avoids a DB lookup on every authorized request.
+- Short-lived access tokens reduce exposure if a token is leaked.
 
 Where
 
@@ -25,7 +27,9 @@ What
 
 Why
 
-- Limits damage from stolen tokens and detects token replay.
+- Rotation limits the lifetime of a stolen refresh token.
+- Reuse detection signals compromise and revokes outstanding tokens.
+- Hashing tokens protects the database if it is ever exposed.
 
 Where
 
@@ -41,7 +45,9 @@ What
 
 Why
 
-- Reduces exposure to XSS and CSRF risks.
+- HttpOnly blocks JavaScript access, reducing XSS impact.
+- `sameSite` reduces CSRF by limiting cross-site cookie sending.
+- `secure` ensures cookies only travel over HTTPS in production.
 
 Where
 
@@ -56,7 +62,9 @@ What
 
 Why
 
-- Enables downstream authorization without re-parsing JWTs and DB queries
+- Enables downstream authorization without re-parsing JWTs.
+- Keeps authorization decisions consistent within a single request.
+- Reduces repeated work and makes middleware chains simpler.
 
 Where
 

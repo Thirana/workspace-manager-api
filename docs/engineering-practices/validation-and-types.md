@@ -6,7 +6,9 @@ What
 - Zod schemas validate runtime inputs and also provide inferred TypeScript types.
 
 Why
-- Prevents invalid data from entering the system and keeps types in sync with validation rules.
+- Prevents invalid data from entering the system at the boundary.
+- Keeps TypeScript types aligned with runtime validation to avoid drift.
+- Makes refactors safer because validation and types evolve together.
 
 Where
 - Schemas: `src/schemas/auth.schema.ts`, `src/schemas/workspace.schema.ts`
@@ -18,7 +20,9 @@ What
 - `validateBody`, `validateParams`, and `validateQuery` apply schemas consistently.
 
 Why
-- Removes duplicate validation logic and keeps routes simple.
+- Removes duplicate validation logic across routes and controllers.
+- Keeps handlers focused on business logic instead of input plumbing.
+- Creates a single place to update validation behavior.
 
 Where
 - Middleware: `src/middlewares/validate.ts`
@@ -31,6 +35,8 @@ What
 
 Why
 - Avoids inconsistent data storage and comparison bugs.
+- Prevents accidental duplicates caused by casing or extra whitespace.
+- Makes search and uniqueness checks more reliable.
 
 Where
 - Email normalization: `src/schemas/auth.schema.ts`
@@ -43,7 +49,9 @@ What
 - Validate `workspaceId` with a Zod regex and re-check with `mongoose.isValidObjectId`.
 
 Why
-- Stops invalid IDs early and keeps membership checks safe.
+- Stops invalid IDs early with clear 400 responses.
+- Avoids unnecessary database queries and cast errors.
+- Adds a second guard in case params validation is bypassed.
 
 Where
 - Param schema: `src/schemas/workspace.schema.ts`

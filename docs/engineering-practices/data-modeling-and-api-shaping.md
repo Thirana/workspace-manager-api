@@ -8,7 +8,9 @@ What
 
 Why
 
-- Keeps API responses clean and prevents leaking internal Mongo fields.
+- Keeps API responses clean and consistent for clients.
+- Prevents leaking internal Mongo fields like `_id` and `__v`.
+- Reduces response formatting work in controllers.
 
 Where
 
@@ -23,7 +25,9 @@ What
 
 Why
 
-- Prevents accidental exposure of sensitive data.
+- `select: false` avoids fetching passwords by default.
+- JSON sanitization provides a second layer of protection.
+- Reduces the chance of accidental leaks in new endpoints.
 
 Where
 
@@ -38,7 +42,9 @@ What
 
 Why
 
-- Encapsulates security logic at the data layer.
+- Encapsulates hashing behavior close to the data model.
+- Avoids duplicated comparison logic across services.
+- Makes future hash upgrades easier to implement in one place.
 
 Where
 
@@ -54,6 +60,8 @@ What
 Why
 
 - Prevents duplicates caused by inconsistent casing or spacing.
+- Makes indexing and lookup behavior predictable.
+- Simplifies comparisons across the system.
 
 Where
 
@@ -69,7 +77,9 @@ What
 
 Why
 
-- Enables recovery and preserves references.
+- Enables recovery and audit trails without restoring from backups.
+- Preserves references that might still exist in related data.
+- Lets the app hide deleted records without destructive operations.
 
 Where
 
