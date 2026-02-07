@@ -12,7 +12,9 @@ Why
 
 Where
 - Schemas: `src/schemas/auth.schema.ts`, `src/schemas/workspace.schema.ts`
+- Schemas (projects): `src/schemas/project.schema.ts`
 - Example types: `RegisterInput`, `LoginInput`, `CreateWorkspaceInput`, `UpdateWorkspaceInput`
+  - Projects: `CreateProjectInput`, `UpdateProjectInput`, `ListProjectsQuery`
 
 ## Centralized validation for body, params, and query
 
@@ -27,6 +29,7 @@ Why
 Where
 - Middleware: `src/middlewares/validate.ts`
 - Example usage: `src/routes/v1/workspace.routes.ts`
+- Project routes: `src/routes/v1/workspace.routes.ts` (projects endpoints)
 
 ## Input normalization at the edge
 

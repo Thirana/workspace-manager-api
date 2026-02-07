@@ -18,6 +18,7 @@ Global middlewares (applied to all routes)
 Sections
 - Auth API: `docs/api/auth.md`
 - Workspace API: `docs/api/workspaces.md`
+- Project API: `docs/api/projects.md`
 - Engineering practices: `docs/engineering-practices/README.md`
 - Architecture: `docs/architecture.md`
 - Middlewares: `docs/middlewares/middlewares.md`

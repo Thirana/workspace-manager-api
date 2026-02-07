@@ -19,6 +19,7 @@ What
 - Unique slug for workspaces.
 - Unique membership per workspace/user.
 - Partial unique index for a single active owner.
+- Unique project slug per workspace.
 
 Why
 - Enforces data invariants at the database level, not just in code.
@@ -28,6 +29,7 @@ Why
 Where
 - Workspace model: `src/models/workspace.model.ts`
 - Membership model: `src/models/workspaceMembership.model.ts`
+- Project model: `src/models/project.model.ts`
 
 ## TTL index for refresh tokens
 
@@ -57,6 +59,7 @@ Why
 Where
 - Workspace service: `src/services/workspace.service.ts`
 - Member service: `src/services/workspaceMember.service.ts`
+- Project service: `src/services/project.service.ts`
 
 ## Environment-specific DB behavior
 

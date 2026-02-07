@@ -36,6 +36,7 @@ Where
 
 - Membership check: `src/middlewares/requireWorkspaceMember.ts`
 - Route usage: `src/routes/v1/workspace.routes.ts`
+- Project routes: `src/routes/v1/workspace.routes.ts` (projects endpoints)
 
 ## Workspace role checks
 
@@ -55,6 +56,7 @@ Where
 
 - Role middleware: `src/middlewares/requireWorkspaceRole.ts`
 - Member service checks: `src/services/workspaceMember.service.ts`
+- Project service checks (owner/admin or creator): `src/services/project.service.ts`
 
 ## Least-privilege queries
 
@@ -71,6 +73,7 @@ Why
 Where
 
 - Service: `src/services/workspace.service.ts`
+- Project service (workspace scoping): `src/services/project.service.ts`
 
 ## Membership lifecycle rules
 

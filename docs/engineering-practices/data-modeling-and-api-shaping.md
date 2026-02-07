@@ -56,6 +56,7 @@ What
 
 - Email lowercasing and trimming.
 - Slug normalization (lowercase, trimmed) for workspaces.
+- Slug normalization (lowercase, trimmed) for projects.
 
 Why
 
@@ -68,6 +69,8 @@ Where
 - User schema: `src/models/user.model.ts`
 - Workspace schema: `src/models/workspace.model.ts`
 - Slugify: `src/schemas/workspace.schema.ts`
+- Project schema: `src/models/project.model.ts`
+- Project slugify: `src/schemas/project.schema.ts`
 
 ## Soft delete fields
 
@@ -75,6 +78,7 @@ What
 
 - Workspaces use `isDeleted` and `deletedAt` rather than hard deletes.
 - Memberships use `status`, `removedAt`, and `removedBy` for soft removal.
+- Projects use `isDeleted` and `deletedAt` for soft deletes.
 
 Why
 
@@ -88,3 +92,5 @@ Where
 - Workspace model: `src/models/workspace.model.ts`
 - Workspace service: `src/services/workspace.service.ts`
 - Membership model: `src/models/workspaceMembership.model.ts`
+- Project model: `src/models/project.model.ts`
+- Project service: `src/services/project.service.ts`

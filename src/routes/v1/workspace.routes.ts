@@ -1,12 +1,19 @@
 import { Router } from 'express';
 
 import { createWorkspace, listWorkspaces, getWorkspace, updateWorkspace, deleteWorkspace } from '../../controllers/workspace.controller.js';
+import { createProject, listProjects, getProject, updateProject, deleteProject } from '../../controllers/project.controller.js';
 import { addMember, listMembers, updateMemberRole, removeMember } from '../../controllers/workspaceMember.controller.js';
 import { requireAuth } from '../../middlewares/requireAuth.js';
 import { requireWorkspaceMember } from '../../middlewares/requireWorkspaceMember.js';
 import { requireWorkspaceCreator } from '../../middlewares/requireWorkspaceCreator.js';
 import { validateBody, validateParams, validateQuery } from '../../middlewares/validate.js';
 import { createWorkspaceSchema, updateWorkspaceSchema, workspaceIdParamSchema } from '../../schemas/workspace.schema.js';
+import {
+    createProjectSchema,
+    listProjectsQuerySchema,
+    updateProjectSchema,
+    workspaceProjectParamSchema,
+} from '../../schemas/project.schema.js';
 import {
     createMemberSchema,
     listMembersQuerySchema,
@@ -36,6 +43,36 @@ workspaceRouter.get(
     validateParams(workspaceIdParamSchema),
     requireWorkspaceMember('workspaceId'),
     asyncHandler(getWorkspace),
+);
+
+// Create project (owner/admin/member)
+workspaceRouter.post(
+    '/:workspaceId/projects',
+    requireAuth,
+    validateParams(workspaceIdParamSchema),
+    requireWorkspaceMember('workspaceId'),
+    requireWorkspaceRole('owner', 'admin', 'member'),
+    validateBody(createProjectSchema),
+    asyncHandler(createProject),
+);
+
+// List projects
+workspaceRouter.get(
+    '/:workspaceId/projects',
+    requireAuth,
+    validateParams(workspaceIdParamSchema),
+    requireWorkspaceMember('workspaceId'),
+    validateQuery(listProjectsQuerySchema),
+    asyncHandler(listProjects),
+);
+
+// Get project
+workspaceRouter.get(
+    '/:workspaceId/projects/:projectId',
+    requireAuth,
+    validateParams(workspaceProjectParamSchema),
+    requireWorkspaceMember('workspaceId'),
+    asyncHandler(getProject),
 );
 
 // List workspace members
@@ -70,6 +107,16 @@ workspaceRouter.patch(
     asyncHandler(updateWorkspace),
 );
 
+// Update project (owner/admin or creator)
+workspaceRouter.patch(
+    '/:workspaceId/projects/:projectId',
+    requireAuth,
+    validateParams(workspaceProjectParamSchema),
+    requireWorkspaceMember('workspaceId'),
+    validateBody(updateProjectSchema),
+    asyncHandler(updateProject),
+);
+
 // Owner-only delete (soft)
 workspaceRouter.delete(
     '/:workspaceId',
@@ -78,6 +125,15 @@ workspaceRouter.delete(
     requireWorkspaceMember('workspaceId'),
     requireWorkspaceRole('owner'),
     asyncHandler(deleteWorkspace),
+);
+
+// Delete project (owner/admin or creator)
+workspaceRouter.delete(
+    '/:workspaceId/projects/:projectId',
+    requireAuth,
+    validateParams(workspaceProjectParamSchema),
+    requireWorkspaceMember('workspaceId'),
+    asyncHandler(deleteProject),
 );
 
 // Update member role (owner/admin only)
