@@ -16,7 +16,10 @@ export const validateBody =
 export const validateQuery =
     (schema: AnyZodSchema): RequestHandler =>
         (req, _res, next) => {
-            req.query = schema.parse(req.query);
+            const parsed = schema.parse(req.query);
+            // Express v5 exposes req.query as a getter-only property.
+            // Mutate the existing object to keep compatibility.
+            Object.assign(req.query, parsed);
             next();
         };
 

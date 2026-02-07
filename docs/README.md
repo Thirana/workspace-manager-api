@@ -13,3 +13,6 @@ This folder contains the project documentation.
 ## Engineering
 - Engineering practices: `docs/engineering-practices/README.md`
 - Architecture overview: `docs/architecture.md`
+
+## Future Improvements
+- Implementation guide: `docs/future-improvements/README.md`

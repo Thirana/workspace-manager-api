@@ -80,3 +80,16 @@ Why
 
 Where
 - App setup: `src/app.ts`
+
+## Minimal PII exposure in list endpoints
+
+What
+- Member list populates only `email`, `firstName`, and `lastName`.
+
+Why
+- Limits PII in responses to what the UI needs.
+- Reduces risk if logs or responses are mishandled.
+- Encourages explicit field selection instead of broad population.
+
+Where
+- Member service: `src/services/workspaceMember.service.ts`

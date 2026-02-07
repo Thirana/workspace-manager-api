@@ -21,6 +21,9 @@ const membershipSchema = new mongoose.Schema(
         },
 
         status: { type: String, enum: ['active', 'removed'], default: 'active' },
+
+        removedAt: { type: Date, default: null },
+        removedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     },
     { timestamps: true },
 );

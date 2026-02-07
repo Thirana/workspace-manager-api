@@ -42,16 +42,19 @@ Where
 What
 
 - Enforce minimum roles per action (owner/admin/member/viewer).
+- Admins can manage roles, but owner role is protected from changes or removal.
 
 Why
 
 - Allows fine-grained permissions inside a workspace.
 - Centralizes role checks to avoid missed authorization in handlers.
 - Makes permission changes explicit and auditable.
+- Prevents privilege escalation by ensuring only owners control ownership.
 
 Where
 
 - Role middleware: `src/middlewares/requireWorkspaceRole.ts`
+- Member service checks: `src/services/workspaceMember.service.ts`
 
 ## Least-privilege queries
 
@@ -68,3 +71,21 @@ Why
 Where
 
 - Service: `src/services/workspace.service.ts`
+
+## Membership lifecycle rules
+
+What
+
+- Members can be reactivated if previously removed.
+- Removal is a soft state transition, not a hard delete.
+
+Why
+
+- Preserves history while allowing safe re-joins.
+- Avoids duplicate membership records for the same user and workspace.
+- Keeps permission changes explicit and traceable.
+
+Where
+
+- Membership model: `src/models/workspaceMembership.model.ts`
+- Member service: `src/services/workspaceMember.service.ts`

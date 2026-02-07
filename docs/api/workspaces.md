@@ -13,6 +13,10 @@ All workspace routes require `Authorization: Bearer <accessToken>`.
 | GET | /api/v1/workspaces/:workspaceId | Get workspace by ID |
 | PATCH | /api/v1/workspaces/:workspaceId | Update workspace |
 | DELETE | /api/v1/workspaces/:workspaceId | Soft-delete workspace |
+| GET | /api/v1/workspaces/:workspaceId/members | List workspace members |
+| POST | /api/v1/workspaces/:workspaceId/members | Add workspace member |
+| PATCH | /api/v1/workspaces/:workspaceId/members/:memberId | Update member role |
+| DELETE | /api/v1/workspaces/:workspaceId/members/:memberId | Remove member |
 
 ## Create Workspace
 `POST /api/v1/workspaces`
@@ -174,6 +178,135 @@ Path params
 
 Validation rules
 - `workspaceId`: must be a valid Mongo ObjectId.
+
+Success response (204)
+No content.
+
+## Members
+
+### List Members
+`GET /api/v1/workspaces/:workspaceId/members`
+
+Middleware chain
+- `requireAuth`
+- `validateParams(workspaceIdParamSchema)`
+- `requireWorkspaceMember('workspaceId')`
+- `validateQuery(listMembersQuerySchema)`
+- `asyncHandler(listMembers)`
+
+Query params (optional)
+- `limit`: number of results to return (default 20, max 100)
+- `cursor`: pagination cursor (use `nextCursor` from a previous response)
+- `role`: filter by role (owner | admin | member | viewer)
+- If `role` is not provided, all active members are returned.
+
+Example request
+```
+GET /api/v1/workspaces/64f1b2c3d4e5f60718293a4b/members?limit=20&role=member
+```
+
+Success response (200)
+```json
+{
+  "items": [
+    {
+      "id": "<membershipId>",
+      "user": {
+        "id": "<userId>",
+        "email": "user@example.com",
+        "firstName": "Jane",
+        "lastName": "Doe"
+      },
+      "role": "member",
+      "status": "active",
+      "createdAt": "2026-02-04T00:00:00.000Z"
+    }
+  ],
+  "nextCursor": "<cursor>"
+}
+```
+
+
+### Add Member
+`POST /api/v1/workspaces/:workspaceId/members`
+
+Middleware chain
+- `requireAuth`
+- `validateParams(workspaceIdParamSchema)`
+- `requireWorkspaceMember('workspaceId')`
+- `requireWorkspaceRole('owner', 'admin')`
+- `validateBody(createMemberSchema)`
+- `asyncHandler(addMember)`
+
+Request body
+```json
+{ "userId": "<userId>", "role": "member" }
+```
+
+Notes
+- `role` allowed values: `member` or `viewer` (defaults to `member`).
+
+Success response (201)
+```json
+{
+  "message": "Member added",
+  "member": {
+    "id": "<membershipId>",
+    "userId": "<userId>",
+    "role": "member",
+    "status": "active",
+    "createdAt": "2026-02-04T00:00:00.000Z"
+  }
+}
+```
+
+### Update Member Role
+`PATCH /api/v1/workspaces/:workspaceId/members/:memberId`
+
+Middleware chain
+- `requireAuth`
+- `validateParams(workspaceMemberParamSchema)`
+- `requireWorkspaceMember('workspaceId')`
+- `requireWorkspaceRole('owner', 'admin')`
+- `validateBody(updateMemberRoleSchema)`
+- `asyncHandler(updateMemberRole)`
+
+Path params
+- `workspaceId`: Mongo ObjectId string
+- `memberId`: userId (Mongo ObjectId string)
+
+Request body
+```json
+{ "role": "admin" }
+```
+
+Success response (200)
+```json
+{
+  "message": "Member role updated",
+  "member": {
+    "id": "<membershipId>",
+    "userId": "<userId>",
+    "role": "admin",
+    "status": "active",
+    "createdAt": "2026-02-04T00:00:00.000Z"
+  }
+}
+```
+
+### Remove Member
+`DELETE /api/v1/workspaces/:workspaceId/members/:memberId`
+
+Middleware chain
+- `requireAuth`
+- `validateParams(workspaceMemberParamSchema)`
+- `requireWorkspaceMember('workspaceId')`
+- `requireWorkspaceRole('owner', 'admin')`
+- `asyncHandler(removeMember)`
+
+Path params
+- `workspaceId`: Mongo ObjectId string
+- `memberId`: userId (Mongo ObjectId string)
 
 Success response (204)
 No content.

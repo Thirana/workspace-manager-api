@@ -46,14 +46,17 @@ Where
 
 What
 - Workspace list is sorted and filters out soft-deleted records.
+- Member list uses cursor pagination with `_id` ordering for stability.
 
 Why
 - Stable ordering helps pagination and reduces surprises in clients.
 - Consistent ordering makes testing and UI behavior deterministic.
 - Filtering out soft-deleted data prevents accidental exposure.
+- Cursor pagination avoids costly `skip` queries on large collections.
 
 Where
 - Workspace service: `src/services/workspace.service.ts`
+- Member service: `src/services/workspaceMember.service.ts`
 
 ## Environment-specific DB behavior
 

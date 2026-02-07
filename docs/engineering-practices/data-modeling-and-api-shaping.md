@@ -74,14 +74,17 @@ Where
 What
 
 - Workspaces use `isDeleted` and `deletedAt` rather than hard deletes.
+- Memberships use `status`, `removedAt`, and `removedBy` for soft removal.
 
 Why
 
 - Enables recovery and audit trails without restoring from backups.
 - Preserves references that might still exist in related data.
 - Lets the app hide deleted records without destructive operations.
+- Keeps membership history intact for compliance or audit needs.
 
 Where
 
 - Workspace model: `src/models/workspace.model.ts`
 - Workspace service: `src/services/workspace.service.ts`
+- Membership model: `src/models/workspaceMembership.model.ts`
