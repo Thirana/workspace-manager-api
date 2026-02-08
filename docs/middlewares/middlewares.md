@@ -1,6 +1,6 @@
 # Middlewares
 
-This project uses Express middlewares for authentication, authorization, validation, and error handling. Below is a list of the available middlewares and how to use them.
+This project uses Express middlewares for authentication, authorization, validation, and error handling. Each item below can be expanded to see details.
 
 ## App Level Middleware Stack
 
@@ -16,7 +16,9 @@ These middlewares are applied globally to all routes:
 
 ## Request Context
 
-### requestId
+<details>
+<summary>requestId</summary>
+
 File: `src/middlewares/requestId.ts`
 
 Purpose
@@ -33,8 +35,11 @@ Typical usage
 ```ts
 app.use(requestId);
 ```
+</details>
 
-### rateLimit
+<details>
+<summary>rateLimit</summary>
+
 File: `src/middlewares/rateLimit.ts`
 
 Purpose
@@ -54,10 +59,13 @@ Typical usage
 ```ts
 app.use(rateLimit());
 ```
+</details>
 
 ## Authentication
 
-### requireAuth
+<details>
+<summary>requireAuth</summary>
+
 File: `src/middlewares/requireAuth.ts`
 
 Purpose
@@ -77,8 +85,11 @@ Typical usage
 ```ts
 router.get('/me', requireAuth, asyncHandler(me));
 ```
+</details>
 
-### requireSystemRole
+<details>
+<summary>requireSystemRole</summary>
+
 File: `src/middlewares/requireSystemRole.ts`
 
 Purpose
@@ -98,10 +109,13 @@ Typical usage
 ```ts
 router.get('/admin', requireAuth, requireSystemRole('system_admin'), handler);
 ```
+</details>
 
 ## Workspace Authorization
 
-### requireWorkspaceCreator
+<details>
+<summary>requireWorkspaceCreator</summary>
+
 File: `src/middlewares/requireWorkspaceCreator.ts`
 
 Purpose
@@ -122,8 +136,11 @@ Typical usage
 ```ts
 router.post('/', requireAuth, requireWorkspaceCreator, validateBody(schema), handler);
 ```
+</details>
 
-### requireWorkspaceMember
+<details>
+<summary>requireWorkspaceMember</summary>
+
 File: `src/middlewares/requireWorkspaceMember.ts`
 
 Purpose
@@ -145,8 +162,11 @@ Typical usage
 ```ts
 router.get('/:workspaceId', requireAuth, requireWorkspaceMember('workspaceId'), handler);
 ```
+</details>
 
-### requireWorkspaceRole
+<details>
+<summary>requireWorkspaceRole</summary>
+
 File: `src/middlewares/requireWorkspaceRole.ts`
 
 Purpose
@@ -173,12 +193,13 @@ router.patch(
   handler,
 );
 ```
+</details>
 
 ## Validation
 
-### validateBody
-### validateQuery
-### validateParams
+<details>
+<summary>validateBody / validateQuery / validateParams</summary>
+
 File: `src/middlewares/validate.ts`
 
 Purpose
@@ -194,10 +215,13 @@ Typical usage
 ```ts
 router.post('/register', validateBody(registerSchema), asyncHandler(register));
 ```
+</details>
 
 ## Error Handling
 
-### errorHandler
+<details>
+<summary>errorHandler</summary>
+
 File: `src/middlewares/errorHandler.ts`
 
 Purpose
@@ -222,10 +246,13 @@ Example response
   }
 }
 ```
+</details>
 
 ## Utility
 
-### asyncHandler
+<details>
+<summary>asyncHandler</summary>
+
 File: `src/utils/asyncHandler.ts`
 
 Purpose
@@ -235,3 +262,4 @@ Typical usage
 ```ts
 router.get('/me', requireAuth, asyncHandler(me));
 ```
+</details>
