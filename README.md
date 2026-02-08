@@ -28,7 +28,7 @@ A selection of the practices implemented in this project:
 
 ### Validation and type safety
 
-- Centralized Zod validation for body/query/params, for blocking incorrect data before it reaches the controller layer.
+- Centralized validation for body/query/params, for blocking incorrect data before it reaches the controller layer.
 - Schema driven types, for avoiding type mismatches during refactors.
 
 ### Authentication and session design
@@ -42,7 +42,6 @@ A selection of the practices implemented in this project:
 - Global system roles vs workspace roles, for clear separation of platform access from workspace access.
 - Membership checks first, for blocking non members before any workspace data is touched.
 - Role checks for sensitive actions, for ensuring only owners or admins can make risky changes.
-- Creator based exceptions, for letting contributors manage the projects they created without admin rights.
 
 ### Data consistency and integrity
 
@@ -135,11 +134,8 @@ The API will be available at `http://localhost:4000` by default.
 
 ## Documentation
 
-- API overview: https://github.com/Thirana/workspace-manager-api/blob/main/docs/api.md
-- Auth API: https://github.com/Thirana/workspace-manager-api/blob/main/docs/api/auth.md
-- Workspace API: https://github.com/Thirana/workspace-manager-api/blob/main/docs/api/workspaces.md
-- Project API: https://github.com/Thirana/workspace-manager-api/blob/main/docs/api/projects.md
-- Engineering practices: https://github.com/Thirana/workspace-manager-api/blob/main/docs/engineering-practices/README.md
-- Architecture: https://github.com/Thirana/workspace-manager-api/blob/main/docs/architecture.md
-- Middleware: https://github.com/Thirana/workspace-manager-api/blob/main/docs/middlewares/middlewares.md
-- Docs index: https://github.com/Thirana/workspace-manager-api/blob/main/docs/README.md
+- Auth API: `docs/api/auth.md` ([link](https://github.com/Thirana/workspace-manager-api/blob/main/docs/api/auth.md))
+- Workspace API: `docs/api/workspaces.md` ([link](https://github.com/Thirana/workspace-manager-api/blob/main/docs/api/workspaces.md))
+- Project API: `docs/api/projects.md` ([link](https://github.com/Thirana/workspace-manager-api/blob/main/docs/api/projects.md))
+- Engineering practices: `docs/engineering-practices/README.md` ([link](https://github.com/Thirana/workspace-manager-api/blob/main/docs/engineering-practices/README.md))
+- Middleware: `docs/middlewares/middlewares.md` ([link](https://github.com/Thirana/workspace-manager-api/blob/main/docs/middlewares/middlewares.md))

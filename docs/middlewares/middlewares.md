@@ -2,6 +2,18 @@
 
 This project uses Express middlewares for authentication, authorization, validation, and error handling. Below is a list of the available middlewares and how to use them.
 
+## App Level Middleware Stack
+
+These middlewares are applied globally to all routes:
+
+- `helmet()` security headers
+- `express.json({ limit: '1mb' })` JSON parsing
+- `cookieParser()` cookie parsing
+- `requestId` assigns or propagates `x-request-id`
+- `rateLimit()` basic in-memory rate limiting
+- `cors({ origin: env.CORS_ORIGIN, credentials: true })`
+- request logger (`logger.info`)
+
 ## Request Context
 
 ### requestId
